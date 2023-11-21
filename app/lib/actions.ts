@@ -3,6 +3,7 @@ import { z } from 'zod'
 import { sql } from '@vercel/postgres'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
+import { signIn } from '@/auth'
 
 // 导入Zod并定义一个与表单对象的形状匹配的模式。此模式将在将formData保存到数据库之前对其进行验证。
 const InvoiceSchema = z.object({
@@ -108,4 +109,15 @@ export async function updateInvoice(id: string, prevState: InvoiceState, formDat
 
 export async function deleteInvoice(id: string) {
   throw new Error('Failed to Delete Invoice')
+}
+
+export async function authenticate(prevState: string | undefined, formData: FormData) {
+  try {
+    await signIn('credentials', Object.fromEntries(formData))
+  } catch (error) {
+    if ((error as Error).message.includes('CredentialsSignin')) {
+      return 'CredentialsSignin'
+    }
+    throw error
+  }
 }
